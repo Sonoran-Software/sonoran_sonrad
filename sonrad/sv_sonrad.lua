@@ -31,7 +31,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
         RegisterNetEvent("SonoranCAD::sonrad:GetUnitInfo")
         AddEventHandler("SonoranCAD::sonrad:GetUnitInfo", function()
             local unit = GetUnitByPlayerId(source)
-            if unit ~= nil then print(json.encode(unit)) end
+            --if unit ~= nil then print(json.encode(unit)) end
             TriggerClientEvent("SonoranCAD::sonrad:RecvUnitInfo", source, unit)
         end)
 
