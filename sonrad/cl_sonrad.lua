@@ -13,6 +13,10 @@ CreateThread(function()
 
         if pluginConfig.enabled then
 
+            local CurrentUnit = {}
+            local CurrentCall = {}
+
+            
 
 
         end
