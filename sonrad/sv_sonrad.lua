@@ -43,9 +43,11 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                     -- print(json.encode(v))
                     for ka, va in pairs(v.dispatch.idents) do
                         -- print("Comparing " .. unit.id .. " to " .. va)
-                        if unit.id == va then
-                            TriggerClientEvent("SonoranCAD::sonrad:UpdateCurrentCall", source, v)
-                            -- print("SonoranCAD::sonrad:UpdateCurrentCall " .. source .. " " .. json.encode(v))
+                        if unit then
+                            if unit.id == va then
+                                TriggerClientEvent("SonoranCAD::sonrad:UpdateCurrentCall", source, v)
+                                -- print("SonoranCAD::sonrad:UpdateCurrentCall " .. source .. " " .. json.encode(v))
+                            end
                         end
                     end
                 end
@@ -71,7 +73,9 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
         RegisterNetEvent("SonoranCAD::sonrad:GetUnitInfo")
         AddEventHandler("SonoranCAD::sonrad:GetUnitInfo", function()
             local unit = GetUnitByPlayerId(source)
-            TriggerClientEvent("SonoranCAD::sonrad:GetUnitInfo:Return", source, unit)
+            if unit then
+                TriggerClientEvent("SonoranCAD::sonrad:GetUnitInfo:Return", source, unit)
+            end
         end)
 
         function sendRadioPanic(source)
