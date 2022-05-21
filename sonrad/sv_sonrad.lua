@@ -130,13 +130,13 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
         RegisterNetEvent("SonoranCAD::sonrad:SyncTowers")
         AddEventHandler("SonoranCAD::sonrad:SyncTowers", function(Towers)
             BlipMan.removeWithSubtype("repeater", function(res)
-                print(res)
+                debugLog(res)
 
                 TowerCache = Towers
 
                 local BlipQueue = {}
 
-                print(json.encode(TowerCache))
+                debugLog(json.encode(TowerCache))
                 for _,t in ipairs(TowerCache) do
 
                     local CurrentBlip = {
@@ -169,7 +169,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                     for i=1, #TowerCache do
                         TowerCache[i].BlipID = blips[i].id
                     end
-                    print("Tower Cache:" .. json.encode(TowerCache))
+                    debugLog("Tower Cache:" .. json.encode(TowerCache))
                 end)
             end)
         end)
@@ -184,17 +184,17 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
             local status = nil
             if pct == 1 then
                 -- Tower is alive and well.
-                print("TOWER IS HEALTHY")
+                debugLog("TOWER IS HEALTHY")
                 color = "#00a6ff"
                 status = "HEALTHY"
             elseif pct == 0 then
                 -- Tower is offline
-                print("TOWER IS OFFLINE")
+                debugLog("TOWER IS OFFLINE")
                 color = "#ff0000"
                 status = "OFFLINE"
             else
                 -- Tower is degraded
-                print("TOWER IS DEGRADED")
+                debugLog("TOWER IS DEGRADED")
                 color = "#ff8c00"
                 status = "DEGRADED"
             end
@@ -218,7 +218,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                 }
             }}
             BlipMan.modifyBlips(data, function(res)
-                print(res)
+                debugLog(res)
             end)
         end)
         
