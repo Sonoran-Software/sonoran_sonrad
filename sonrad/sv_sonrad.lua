@@ -110,9 +110,9 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                 return nil, nil
             end
             function GetTowerFromId(id)
-                for _, t in ipairs(TowerCache) do
+                for i, t in ipairs(TowerCache) do
                     if t.Id == id then
-                        return t
+                        return t, i
                     end
                 end
             end
@@ -142,6 +142,18 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                     debugLog(json.encode(TowerCache))
                     for _,t in ipairs(TowerCache) do
 
+                        if TowerCache[i].NotPhysical then
+                            -- Handling for Mobile Repeaters
+                            title = "Mobile Repeater"
+                            color = "#ff00f6"
+                            status = "MOBILE"
+                        else
+                            -- Handling for Stationary Repeaters
+                            title = "Radio Tower"
+                            color = "#00a6ff"
+                            status = "HEALTHY"
+                        end
+
                         local CurrentBlip = {
                             ["serverId"] = GetConvar("sonoran_serverId", 1),
                             ["blip"] = {
@@ -153,12 +165,12 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                                 },
                                 ["radius"] = t.Range * 0.7937,
                                 ["icon"] = "https://sonoransoftware.com/assets/images/icons/email/radio.png",
-                                ["color"] = "#00a6ff",
-                                ["tooltip"] =  "Radio Tower",
+                                ["color"] = color,
+                                ["tooltip"] =  title,
                                 ["data"] = {
                                     {
-                                        ["title"] = "Health",
-                                        ["text"] = "HEALTHY",
+                                        ["title"] = "Status",
+                                        ["text"] = status,
                                     }
                                 }
                             }
@@ -175,6 +187,69 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                         debugLog("Tower Cache:" .. json.encode(TowerCache))
                     end)
                 end)
+            end)
+                        
+            CreateThread(function()
+                while true do
+                    Wait(5000)
+                    for i=1, #TowerCache do
+                        if TowerCache[i].Modified then
+                            debugLog("Change found during batch... Sending")
+                            TowerCache[i].Modified = false
+                            local color = nil
+                            local status = nil
+                            local title = nil
+                            if TowerCache[i].NotPhysical then
+                                -- Handling for Mobile Repeaters
+                                title = "Mobile Repeater"
+                                color = "#ff00f6"
+                                status = "MOBILE"
+                            else
+                                -- Handling for Stationary Repeaters
+                                title = "Radio Tower"
+                                color = "#00a6ff"
+                                status = "HEALTHY"
+                            end
+                            local data = {{
+                                ["id"] = TowerCache[i].BlipID,
+                                ["subType"] = "repeater",
+                                ["coordinates"] = {
+                                    ["x"] = TowerCache[i].PropPosition.x,
+                                    ["y"] = TowerCache[i].PropPosition.y
+                                },
+                                ["radius"] = TowerCache[i].Range * 0.7937,
+                                ["icon"] = "https://sonoransoftware.com/assets/images/icons/email/radio.png",
+                                ["color"] = color,
+                                ["tooltip"] = title,
+                                ["data"] = {
+                                    {
+                                        ["title"] = "Health",
+                                        ["text"] = status
+                                    }
+                                }
+                            }}
+                            BlipMan.modifyBlips(data, function(res)
+                                debugLog(res)
+                            end)
+                        else
+                            --debugLog("No changes during batch... Ignoring")
+                        end
+                    end
+                end
+            end)
+
+            RegisterNetEvent("SonoranCAD::sonrad:SyncOneTower")
+            AddEventHandler("SonoranCAD::sonrad:SyncOneTower", function(towerId, newTower)
+                local oldTower, towerIndex = GetTowerFromId(towerId)
+                local BlipID = oldTower.BlipID
+                if oldTower.PropPosition.x == newTower.PropPosition.x and oldTower.PropPosition.y == newTower.PropPosition.y then
+                    --debugLog("No Changes During Sync... Ignoring" .. towerIndex)
+                else
+                    debugLog("Changes found during sync... Queuing" .. towerIndex)
+                    TowerCache[towerIndex] = newTower
+                    TowerCache[towerIndex].BlipID = BlipID
+                    TowerCache[towerIndex].Modified = true
+                end
             end)
 
             RegisterNetEvent("SonoranCAD::sonrad:SetDishStatus")
