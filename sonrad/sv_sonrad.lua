@@ -16,14 +16,14 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
         local UnitCache = {}
         local TowerCache = {}
 
-        
+
         if Config.apiVersion > 3 then
             -- Register Api Types
             registerApiType("ADD_BLIP", "emergency")
             registerApiType("MODIFY_BLIP", "emergency")
             registerApiType("REMOVE_BLIP", "emergency")
             registerApiType("GET_BLIPS", "emergency")
-            
+
             BlipMan = {
                 addBlip = function(coords, radius, colorHex, subType, toolTip, icon, dataTable, cb)
                     local data = {{
@@ -42,14 +42,14 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                             ["data"] = dataTable
                         }
                     }}
-                    
+
                     performApiRequest(data, "ADD_BLIP", function(res)
                         if cb ~= nil then
                             cb(res)
                         end
                     end)
                 end,
-        
+
                 addBlips = function(blips, cb)
                     performApiRequest(blips, "ADD_BLIP", function(res)
                         if cb ~= nil then
@@ -57,7 +57,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                         end
                     end)
                 end,
-        
+
                 removeBlip = function(ids, cb)
                     performApiRequest({{
                         ["ids"] = ids
@@ -67,7 +67,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                         end
                     end)
                 end,
-        
+
                 modifyBlips = function(dataTable, cb)
                     performApiRequest(dataTable, "MODIFY_BLIP", function(res)
                         if cb ~= nil then
@@ -86,7 +86,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                         end
                     end)
                 end,
-        
+
                 removeWithSubtype = function(subType, cb)
                     BlipMan.getBlips(function(res)
                         local dres = json.decode(res)
@@ -120,7 +120,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                 if #tower.DishStatus < 1 then
                     return 1.0
                 end
-            
+
                 local n = 0.0
                 for i = 1, #tower.DishStatus do
                     if tower.DishStatus[i] == 'alive' then
@@ -188,7 +188,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
                     end)
                 end)
             end)
-                        
+
             CreateThread(function()
                 while true do
                     Wait(5000)
@@ -241,6 +241,15 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
             RegisterNetEvent("SonoranCAD::sonrad:SyncOneTower")
             AddEventHandler("SonoranCAD::sonrad:SyncOneTower", function(towerId, newTower)
                 local oldTower, towerIndex = GetTowerFromId(towerId)
+                if newTower == nil or not oldTower then
+                    debugLog("Tower was deleted... Removing")
+                    BlipMan.removeBlip({TowerCache[towerIndex].BlipID}, function(res)
+                        debugLog(res)
+                    end)
+                    Wait(1000)
+                    table.remove(TowerCache, towerIndex)
+                    return
+                end
                 local BlipID = oldTower.BlipID
                 if oldTower.PropPosition.x == newTower.PropPosition.x and oldTower.PropPosition.y == newTower.PropPosition.y then
                     --debugLog("No Changes During Sync... Ignoring" .. towerIndex)
@@ -302,7 +311,7 @@ CreateThread(function() Config.LoadPlugin("sonrad", function(pluginConfig)
         else
             debugLog("Disabling blip management, API version too low.")
         end
-        
+
 
         CreateThread(function()
             while true do
