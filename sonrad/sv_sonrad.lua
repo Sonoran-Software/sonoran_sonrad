@@ -145,7 +145,6 @@ CreateThread(function()
 
 						debugLog(json.encode(TowerCache))
 						for _, t in ipairs(TowerCache) do
-							print('Tower: ' .. json.encode(t))
 							if t.NotPhysical then
 								-- Handling for Mobile Repeaters
 								t.title = 'Mobile Repeater'
@@ -252,7 +251,6 @@ CreateThread(function()
 						BlipMan.removeBlip({
 							TowerCache[towerIndex].BlipID
 						}, function(res)
-							print('Removed blip ', json.encode(res))
 							debugLog(res)
 						end)
 						Wait(1000)
