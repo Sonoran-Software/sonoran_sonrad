@@ -134,9 +134,9 @@ CreateThread(function()
 					return n / #tower.DishStatus
 				end
 
-				RegisterNetEvent('SonoranCAD::sonrad:SyncTowers')
-				AddEventHandler('SonoranCAD::sonrad:SyncTowers', function(Towers)
-					BlipMan.removeWithSubtype('repeater', function(res)
+				RegisterNetEvent("SonoranCAD::sonrad:SyncTowers")
+				AddEventHandler("SonoranCAD::sonrad:SyncTowers", function(Towers)
+					BlipMan.removeWithSubtype("repeater", function(res)
 						debugLog(res)
 
 						TowerCache = Towers
@@ -145,49 +145,70 @@ CreateThread(function()
 
 						debugLog(json.encode(TowerCache))
 						for _, t in ipairs(TowerCache) do
-							if t.NotPhysical then
-								-- Handling for Mobile Repeaters
-								t.title = 'Mobile Repeater'
-								t.color = '#ff00f6'
-								t.status = 'MOBILE'
-							else
-								-- Handling for Stationary Repeaters
-								t.title = 'Radio Tower'
-								t.color = '#00a6ff'
-								t.status = 'HEALTHY'
+							local type = ""
+							if t.type == "radioTower" then
+								type = "Radio Tower"
+							elseif t.type == "serverRack" then
+								type = "Server Rack"
+							elseif t.AntennaStatus then
+								type = "Cell Repeater"
 							end
-
 							local CurrentBlip = {
-								['serverId'] = GetConvar('sonoran_serverId', 1),
-								['blip'] = {
-									['id'] = -1,
-									['subType'] = 'repeater',
-									['coordinates'] = {
-										['x'] = t.PropPosition.x,
-										['y'] = t.PropPosition.y
+								["serverId"] = GetConvar("sonoran_serverId", 1),
+								["blip"] = {
+									["id"] = -1,
+									["subType"] = "repeater",
+									["coordinates"] = {
+										["x"] = t.PropPosition.x,
+										["y"] = t.PropPosition.y
 									},
-									['radius'] = t.Range * 0.7937,
-									['icon'] = 'https://sonoransoftware.com/assets/images/icons/email/radio.png',
-									['color'] = t.color,
-									['tooltip'] = t.title,
-									['data'] = {
+									["radius"] = t.Range * 0.7937,
+									["icon"] = "https://sonoransoftware.com/assets/images/icons/email/radio.png",
+									["color"] = "#00a6ff",
+									["tooltip"] =  "Radio Repeater",
+									["data"] = {
 										{
-											['title'] = 'Status',
-											['text'] = t.status
+											["title"] = "Type",
+											["text"] = type,
 										}
 									}
 								}
 							}
-
+							if t.type == "radioTower" then
+								local aliveCount = 0
+								for i = 1, #t.DishStatus do
+									if t.DishStatus[i] == "alive" then
+										aliveCount = aliveCount + 1
+									end
+								end
+								table.insert(CurrentBlip.blip.data, {["title"] = "Dishes Alive:", ["text"] = aliveCount .. "/" .. #t.DishStatus})
+							end
+							if t.type == "serverRack" then
+								local aliveCount = 0
+								for i = 1, #t.serverStatus do
+									if t.serverStatus[i] == "alive" then
+										aliveCount = aliveCount + 1
+									end
+								end
+								table.insert(CurrentBlip.blip.data, {["title"] = "Servers Alive:", ["text"] = aliveCount .. "/" .. #t.serverStatus})
+							end
+							if t.AntennaStatus then
+								local aliveCount = 0
+								if t.AntennaStatus == "alive" then
+									table.insert(CurrentBlip.blip.data, {["title"] = "Antenna Status:", ["text"] = 'Alive'})
+								else
+									table.insert(CurrentBlip.blip.data, {["title"] = "Antenna Status:", ["text"] = 'Offline'})
+								end
+							end
 							table.insert(BlipQueue, #BlipQueue + 1, CurrentBlip)
 						end
 
 						BlipMan.addBlips(BlipQueue, function(res)
 							local blips = json.decode(res)
-							for i = 1, #TowerCache do
+							for i=1, #TowerCache do
 								TowerCache[i].BlipID = blips[i].id
 							end
-							debugLog('Tower Cache:' .. json.encode(TowerCache))
+							debugLog("Tower Cache:" .. json.encode(TowerCache))
 						end)
 					end)
 				end)
