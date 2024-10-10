@@ -366,30 +366,19 @@ CreateThread(function()
 			AddEventHandler('SonoranCAD::sonrad:GetCurrentCall', function()
 				local playerid = source
 				local unit = GetUnitByPlayerId(source)
-				-- print("unit: " .. json.encode(unit))
 				for k, v in pairs(CallCache) do
 					if v.dispatch.idents then
-						-- print(json.encode(v))
 						for ka, va in pairs(v.dispatch.idents) do
-							-- print("Comparing " .. unit.id .. " to " .. va)
-							if unit then
-								if unit.id == va then
-									TriggerClientEvent('SonoranCAD::sonrad:UpdateCurrentCall', source, v)
-									-- print("SonoranCAD::sonrad:UpdateCurrentCall " .. source .. " " .. json.encode(v))
-								end
+							if unit and unit.id == va then
+								TriggerClientEvent('SonoranCAD::sonrad:UpdateCurrentCall', source, v)
+								return
 							end
 						end
 					end
 				end
-			end)
 
-			RegisterNetEvent('SonoranCAD::sonrad:RadioPanic')
-			AddEventHandler('SonoranCAD::sonrad:RadioPanic', function()
-				if not isPluginLoaded('callcommands') then
-					errorLog('Cannot process radio panic as the required callcommands plugin is not present.')
-					return
-				end
-				sendPanic(source, true)
+				TriggerClientEvent('SonoranCAD::sonrad:UpdateCurrentCall', source, nil)
+				-- print("SonoranCAD::sonrad:UpdateCurrentCall " .. source .. " " .. json.encode(call))
 			end)
 
 			RegisterNetEvent('SonoranCAD::sonrad:GetUnitInfo')
