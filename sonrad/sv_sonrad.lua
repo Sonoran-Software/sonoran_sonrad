@@ -381,13 +381,12 @@ CreateThread(function()
 				-- print("SonoranCAD::sonrad:UpdateCurrentCall " .. source .. " " .. json.encode(call))
 			end)
 
-			RegisterNetEvent('SonoranCAD::sonrad:RadioPanic')
-			AddEventHandler('SonoranCAD::sonrad:RadioPanic', function()
-				if not isPluginLoaded('callcommands') then
-					errorLog('Cannot process radio panic as the required callcommands plugin is not present.')
-					return
+			RegisterNetEvent('SonoranCAD::sonrad:GetUnitInfo')
+			AddEventHandler('SonoranCAD::sonrad:GetUnitInfo', function()
+				local unit = GetUnitByPlayerId(source)
+				if unit then
+					TriggerClientEvent('SonoranCAD::sonrad:GetUnitInfo:Return', source, unit)
 				end
-				sendPanic(source, true)
 			end)
 		end
 
