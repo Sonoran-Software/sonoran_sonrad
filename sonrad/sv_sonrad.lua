@@ -206,7 +206,12 @@ CreateThread(function()
 						BlipMan.addBlips(BlipQueue, function(res)
 							local blips = json.decode(res)
 							for i=1, #TowerCache do
+								if blips[i] == nil then
+									debugLog("Blip not found for tower " .. i)
+									goto continue
+								end
 								TowerCache[i].BlipID = blips[i].id
+								::continue::
 							end
 							debugLog("Tower Cache:" .. json.encode(TowerCache))
 						end)
@@ -269,14 +274,16 @@ CreateThread(function()
 					local oldTower, towerIndex = GetTowerFromId(towerId)
 					if newTower == nil or not oldTower then
 						debugLog('Tower was deleted... Removing')
-						BlipMan.removeBlip({
-							TowerCache[towerIndex].BlipID
-						}, function(res)
-							debugLog(res)
-						end)
-						Wait(1000)
-						table.remove(TowerCache, towerIndex)
-						return
+						if TowerCache[towerIndex] and TowerCache[towerIndex].BlipID then
+							BlipMan.removeBlip({
+								TowerCache[towerIndex].BlipID
+							}, function(res)
+								debugLog(res)
+							end)
+							Wait(1000)
+							table.remove(TowerCache, towerIndex)
+							return
+						end
 					end
 					local BlipID = oldTower.BlipID
 					if oldTower.PropPosition.x == newTower.PropPosition.x and oldTower.PropPosition.y == newTower.PropPosition.y then
