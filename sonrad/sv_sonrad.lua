@@ -284,15 +284,16 @@ CreateThread(function()
 							table.remove(TowerCache, towerIndex)
 							return
 						end
-					end
-					local BlipID = oldTower.BlipID
-					if oldTower.PropPosition.x == newTower.PropPosition.x and oldTower.PropPosition.y == newTower.PropPosition.y then
-						debugLog('No Changes During Sync... Ignoring' .. towerIndex)
 					else
-						debugLog('Changes found during sync... Queuing' .. towerIndex)
-						TowerCache[towerIndex] = newTower
-						TowerCache[towerIndex].BlipID = BlipID
-						TowerCache[towerIndex].Modified = true
+						local BlipID = TowerCache[towerIndex].BlipID
+						if oldTower.PropPosition.x == newTower.PropPosition.x and oldTower.PropPosition.y == newTower.PropPosition.y then
+							debugLog('No Changes During Sync... Ignoring' .. towerIndex)
+						else
+							debugLog('Changes found during sync... Queuing' .. towerIndex)
+							TowerCache[towerIndex] = newTower
+							TowerCache[towerIndex].BlipID = BlipID
+							TowerCache[towerIndex].Modified = true
+						end
 					end
 				end)
 
